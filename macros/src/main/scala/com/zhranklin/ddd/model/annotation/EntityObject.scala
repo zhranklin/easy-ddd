@@ -13,9 +13,10 @@ class EntityObject extends StaticAnnotation {
   inline def apply(defn: Any): Any = meta {
     defn match {
       case cls @ Defn.Class(_, typeName, _, Ctor.Primary(_, _, paramss), template) ⇒
-
         def tpeToIdentifier(tpe: Type.Arg): String = tpe match {
-          case Type.Name(name) ⇒ name
+          case Type.Select(qual, Type.Name(name)) ⇒
+            qual.syntax.split('.').toSeq :+ name map Type.Name.apply map tpeToIdentifier mkString "_"
+          case Type.Name(name) ⇒ name.replaceAll("\\.", "_")
           case Type.Apply(Type.Name(name), args) ⇒
             s"${name}_l_${args.map(tpeToIdentifier).mkString("_a_")}_r_"
         }
@@ -51,6 +52,10 @@ class EntityObject extends StaticAnnotation {
             q"(${Lit(name)}, ${Term.Name("_m" + tpeToIdentifier(tpe))}.marshal($ref.${Term.Name(name)}))"
         }
 
+        //TODO 一下三行为宏中暂时删除的代码
+//        implicit def _eom[T](implicit _m_EntityObject_Id: Format[com.zhranklin.ddd.model.Id, T]) = new Format[EntityObject, T] {
+//          def marshal(a: EntityObject) = _m_EntityObject_Id.marshal(a.id)
+//        }
         q"""
            case class $typeName(..${paramss.head})
                                (implicit sender: com.zhranklin.ddd.infra.event.Sender,
@@ -73,20 +78,22 @@ class EntityObject extends StaticAnnotation {
              ..$stats
            }
            object ${Term.Name(typeName.syntax)} {
-             import com.zhranklin.ddd.infra.persistence.{Marshaller, Unmarshaller}
-             def toMap[T](${Term.Name(typeToVal(typeName.syntax))}: $typeName)
-                         (implicit ..${impParams(t ⇒ targ"Marshaller[$t, T]")})= {
-               Map[String, T](..${marshallTuples(Term.Name(typeToVal(typeName.syntax)))})
+             import com.zhranklin.ddd.infra.persistence.Format
+             import com.zhranklin.ddd.model.EntityObject
+             implicit def ${Term.Name(typeToVal(typeName.syntax+"ToDmo"))}[T](obj: $typeName)
+                         (implicit ..${impParams(t ⇒ t"Format[$t, T]")}, sender: com.zhranklin.ddd.infra.event.Sender) = {
+               val attr = Map[String, T](..${marshallTuples(q"obj")})
+               Dmo[T](obj.id,${Lit(typeName.syntax)}, attr)
              }
 
-             def fromMap[T](sourceMap: Map[String, T])
-                           (implicit ..${impParams(t ⇒ t"Unmarshaller[T, $t]")},
-                            sender: com.zhranklin.ddd.infra.event.Sender,
-                            id: com.zhranklin.ddd.model.Id)= {
+             implicit def ${Term.Name(typeToVal(typeName.syntax+"FromDmo"))}[T](dmo: Dmo[T])
+                           (implicit ..${impParams(t ⇒ t"Format[$t, T]")},
+                            sender: com.zhranklin.ddd.infra.event.Sender)= {
+               implicit val id = dmo.id
                ${Term.Name(typeName.syntax)}(..${
                     params.map {
                       case Param(_, Term.Name(name), Some(tpe), _) ⇒
-                        arg"""${Term.Name(name)} = ${Term.Name("_m" + tpeToIdentifier(tpe))}.unmarshal(sourceMap(${Lit(name)}))"""
+                        arg"""${Term.Name(name)} = ${Term.Name("_m" + tpeToIdentifier(tpe))}.unmarshal(dmo.attributes(${Lit(name)}))"""
                     }
                   })
              }

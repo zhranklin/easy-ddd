@@ -15,6 +15,6 @@ object EventSource {
   }
 }
 
-class Sender(source: EventSource.WithSender) {
+class Sender(val source: EventSource.WithSender) {
   def send(event: Event) = source.submitForSender(event)
 }
