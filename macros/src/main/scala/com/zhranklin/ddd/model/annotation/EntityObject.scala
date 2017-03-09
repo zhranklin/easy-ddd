@@ -53,8 +53,8 @@ class EntityObject extends StaticAnnotation {
         }
 
         //TODO 一下三行为宏中暂时删除的代码
-//        implicit def _eom[T](implicit _m_EntityObject_Id: Format[com.zhranklin.ddd.model.Id, T]) = new Format[EntityObject, T] {
-//          def marshal(a: EntityObject) = _m_EntityObject_Id.marshal(a.id)
+//        implicit def _eom[T](implicit _m_EntityObject_Id: Marshaller[com.zhranklin.ddd.model.Id, T]) = new Marshaller[EntityObject, T] {
+//          def write(a: EntityObject) = _m_EntityObject_Id.write(a.id)
 //        }
         q"""
            case class $typeName(..${paramss.head})
@@ -78,26 +78,27 @@ class EntityObject extends StaticAnnotation {
              ..$stats
            }
            object ${Term.Name(typeName.syntax)} {
-             import com.zhranklin.ddd.infra.persistence.Format
-             import com.zhranklin.ddd.model.EntityObject
-             implicit def ${Term.Name(typeToVal(typeName.syntax+"ToDmo"))}[T](obj: $typeName)
-                         (implicit ..${impParams(t ⇒ t"Format[$t, T]")}, sender: com.zhranklin.ddd.infra.event.Sender) = {
-               val attr = Map[String, T](..${marshallTuples(q"obj")})
-               Dmo[T](obj.id,${Lit(typeName.syntax)}, attr)
-             }
+             trait Repo {
+               import com.zhranklin.ddd.infra.persistence.{Unmarshaller, Marshaller}
+               import com.zhranklin.ddd.model.EntityObject
+               implicit def ${Term.Name(typeToVal(typeName.syntax+"ToDmo"))}[T](obj: $typeName)
+                           (implicit ..${impParams(t ⇒ t"Marshaller[$t, T]")}, sender: com.zhranklin.ddd.infra.event.Sender) = {
+                 val attr = Map[String, T](..${marshallTuples(q"obj")})
+                 Dmo[T](obj.id,${Lit(typeName.syntax)}, attr)
+               }
 
-             implicit def ${Term.Name(typeToVal(typeName.syntax+"FromDmo"))}[T](dmo: Dmo[T])
-                           (implicit ..${impParams(t ⇒ t"Format[$t, T]")},
-                            sender: com.zhranklin.ddd.infra.event.Sender)= {
-               implicit val id = dmo.id
-               ${Term.Name(typeName.syntax)}(..${
-                    params.map {
-                      case Param(_, Term.Name(name), Some(tpe), _) ⇒
-                        arg"""${Term.Name(name)} = ${Term.Name("_m" + tpeToIdentifier(tpe))}.unmarshal(dmo.attributes(${Lit(name)}))"""
-                    }
-                  })
+               implicit def ${Term.Name(typeToVal(typeName.syntax+"FromDmo"))}[T](dmo: Dmo[T])
+                             (implicit ..${impParams(t ⇒ t"Unmarshaller[$t, T]")},
+                              sender: com.zhranklin.ddd.infra.event.Sender)= {
+                 implicit val id = dmo.id
+                 ${Term.Name(typeName.syntax)}(..${
+                      params.map {
+                        case Param(_, Term.Name(name), Some(tpe), _) ⇒
+                          arg"""${Term.Name(name)} = ${Term.Name("_m" + tpeToIdentifier(tpe))}.unmarshal(dmo.attributes(${Lit(name)}))"""
+                      }
+                    })
+               }
              }
-
            }
          """
     }

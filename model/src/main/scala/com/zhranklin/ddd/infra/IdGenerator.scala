@@ -15,7 +15,7 @@ object IdGenerator {
     import java.util
 
     import scala.math.random
-    def generate = Id(new util.UUID(random.toLong, random.toLong).toString)
+    def generate = Id(util.UUID.randomUUID().toString)
   }
 
 }

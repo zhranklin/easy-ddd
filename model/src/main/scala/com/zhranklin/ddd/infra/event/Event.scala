@@ -1,5 +1,6 @@
 package com.zhranklin.ddd.infra.event
 
+import com.zhranklin.ddd.infra.persistence.Dmo
 import com.zhranklin.ddd.model.EntityObject
 
 /**
