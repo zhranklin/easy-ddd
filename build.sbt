@@ -35,5 +35,6 @@ lazy val infra = project.settings().dependsOn(model)
 
 lazy val testcase = project
   .settings(metaMacroSettings,
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+    scalacOptions := Seq("-Xlog-implicits")
   ).dependsOn(infra)

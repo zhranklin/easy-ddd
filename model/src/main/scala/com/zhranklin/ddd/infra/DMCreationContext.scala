@@ -1,22 +1,24 @@
 package com.zhranklin.ddd.infra
 
 import com.zhranklin.ddd.infra.event.Sender
-import com.zhranklin.ddd.model.Id
+import com.zhranklin.ddd.model.{Id, entityObject}
+
+import scala.reflect.ClassTag
 
 abstract class IdGenerator {
-  def generate: Id
+  def generate[E](implicit classTag: ClassTag[E]): Id[E]
 }
 
 object IdGenerator {
 
-  class Static(id: Id) extends IdGenerator {
-    def generate = id
+  class Static (id: String) extends IdGenerator {
+    def generate[E](implicit classTag: ClassTag[E]) = Id(id)
   }
 
   object UUID extends IdGenerator {
     import java.util
 
-    def generate = Id(util.UUID.randomUUID().toString)
+    def generate[E](implicit classTag: ClassTag[E]) = Id(util.UUID.randomUUID().toString)
   }
 
 }
@@ -27,7 +29,7 @@ object IdGenerator {
  */
 trait DMCreationContext {
 
-  implicit def getId(implicit idGenerator: IdGenerator): Id = idGenerator.generate
+  implicit def getId[E](implicit idGenerator: IdGenerator, classTag: ClassTag[E]): Id[E] = idGenerator.generate
 
   implicit val idGenerator: IdGenerator
 

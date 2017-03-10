@@ -55,7 +55,7 @@ class EntityObject extends StaticAnnotation {
         q"""
            case class $typeName(..${paramss.head})
                                (implicit sender: com.zhranklin.ddd.infra.event.Sender,
-                                id: com.zhranklin.ddd.model.Id)
+                                id: com.zhranklin.ddd.model.Id[$typeName])
              extends com.zhranklin.ddd.model.entityObject {
              import com.zhranklin.ddd.infra.event.Event.{Update, Delete}
 
@@ -86,7 +86,7 @@ class EntityObject extends StaticAnnotation {
                implicit def ${Term.Name(typeToVal(typeName.syntax+"FromDmo"))}[T](dmo: Dmo[T])
                              (implicit ..${impParams(t ⇒ t"Unmarshaller[$t, T]")},
                               sender: com.zhranklin.ddd.infra.event.Sender)= {
-                 implicit val id = dmo.id
+                 implicit val id = com.zhranklin.ddd.model.Id[$typeName](dmo.id.id)
                  ${Term.Name(typeName.syntax)}(..${
                       params.map {
                         case Param(_, Term.Name(name), Some(tpe), _) ⇒

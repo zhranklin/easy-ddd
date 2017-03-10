@@ -8,6 +8,8 @@ import com.zhranklin.ddd.model.{Id, annotation}
 import com.zhranklin.ddd.support.SimpleDMCreationContext
 import com.zhranklin.ddd.support.formats.SimpleFormatsViaString
 
+import scala.collection.mutable
+
 /**
  * Created by Zhranklin on 2017/2/14.
  * 用于测试宏注解的类
@@ -31,16 +33,23 @@ package ttt {
 
 trait RepoImplicits extends SimpleFormatsViaString with SimpleDMCreationContext {
 
-  val mp = collection.mutable.Map("1" → Map("a" → "xx", "b" → "yy"))
+  val simple = mutable.Map("1" → Map("a" → "xx", "b" → "yy"))
+  val parent = mutable.Map("1" → Map("to1" → "1", "to2" → "1"))
+  val testobj = mutable.Map("1" → Map("a" → "xx", "b" → "3", "c" → "[x,y]", "d" → "[[(1,[k,w])],[(4,[s,,])]]"))
+
+  val mp = mutable.Map(
+    "Simple" → simple,
+    "Parent" → parent,
+    "TestObj" → testobj)
 
   implicit val mpr: Mapper[String] = new Mapper[String] {
-    def read(id: Id): Dmo[String] = Dmo(id, "simple", mp(id.id))
-    def write(dmo: Dmo[String]) = mp += (dmo.id.id → dmo.attributes)
+    def read(id: Id[_]): Dmo[String] = Dmo(id, "Simple", mp("Simple")(id.id))
+    def write(dmo: Dmo[String]) = mp(dmo.table) += (dmo.id.id → dmo.attributes)
   }
 
   def handleUpdate(event: Event): Unit = event match {
     case Update(e) ⇒
-      write(e.asInstanceOf[Simple])
+      write(e)
     case _ ⇒
   }
 
@@ -61,7 +70,9 @@ trait RepoImplicits extends SimpleFormatsViaString with SimpleDMCreationContext 
 @annotation.Repository
 trait Repos extends RepoImplicits with WithRepos[(Parent, Simple, ttt.TestObj, ttt.Root)]
 
-object TestDMCreationContext$$$ extends App with SimpleDMCreationContext with Repos{
+object TestDMCreationContext extends App with SimpleDMCreationContext with Repos {
   Simple("kk", "ww")
-  println(read[Simple](Id("1")))
+  println(read[Simple]("1"))
+  println(read[ttt.TestObj]("1"))
+  println(read[Parent]("1"))
 }
