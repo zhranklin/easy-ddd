@@ -59,9 +59,9 @@ trait RepoImplicits extends SimpleFormatsViaString with SimpleUnitOfWork {
 }
 
 @annotation.Repository
-trait Repos extends RepoImplicits with WithRepos with Parent with Simple with ttt.TestObj with ttt.Root
+trait Repos extends RepoImplicits with WithRepos[(Parent, Simple, ttt.TestObj, ttt.Root)]
 
-object TestUnitOfWork extends App with SimpleUnitOfWork with Repos {
+object TestUnitOfWork extends App with SimpleUnitOfWork with Repos{
   Simple("kk", "ww")
   println(read[Simple](Id("1")))
 }

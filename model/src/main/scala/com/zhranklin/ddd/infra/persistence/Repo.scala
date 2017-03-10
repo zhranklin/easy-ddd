@@ -9,4 +9,4 @@ trait Repo {
   def getEntityObject[T]: PartialFunction[Dmo[T], EntityObject]
 }
 
-trait WithRepos
+trait WithRepos[T]
