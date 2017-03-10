@@ -5,8 +5,8 @@ import com.zhranklin.ddd.infra.event._
 import com.zhranklin.ddd.infra.persistence._
 import com.zhranklin.ddd.model.annotation.EntityObject
 import com.zhranklin.ddd.model.{Id, annotation}
+import com.zhranklin.ddd.support.SimpleDMCreationContext
 import com.zhranklin.ddd.support.formats.SimpleFormatsViaString
-import com.zhranklin.ddd.support.formats.support.event.SimpleUnitOfWork
 
 /**
  * Created by Zhranklin on 2017/2/14.
@@ -29,7 +29,7 @@ package ttt {
 
 }
 
-trait RepoImplicits extends SimpleFormatsViaString with SimpleUnitOfWork {
+trait RepoImplicits extends SimpleFormatsViaString with SimpleDMCreationContext {
 
   val mp = collection.mutable.Map("1" → Map("a" → "xx", "b" → "yy"))
 
@@ -61,7 +61,7 @@ trait RepoImplicits extends SimpleFormatsViaString with SimpleUnitOfWork {
 @annotation.Repository
 trait Repos extends RepoImplicits with WithRepos[(Parent, Simple, ttt.TestObj, ttt.Root)]
 
-object TestUnitOfWork extends App with SimpleUnitOfWork with Repos{
+object TestDMCreationContext$$$ extends App with SimpleDMCreationContext with Repos{
   Simple("kk", "ww")
   println(read[Simple](Id("1")))
 }

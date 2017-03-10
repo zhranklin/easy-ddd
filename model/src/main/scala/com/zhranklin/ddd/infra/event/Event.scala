@@ -1,7 +1,7 @@
 package com.zhranklin.ddd.infra.event
 
 import com.zhranklin.ddd.infra.persistence.Dmo
-import com.zhranklin.ddd.model.EntityObject
+import com.zhranklin.ddd.model.entityObject
 
 /**
  * Created by Zhranklin on 2017/2/12.
@@ -9,6 +9,6 @@ import com.zhranklin.ddd.model.EntityObject
  */
 trait Event
 object Event {
-  case class Update(obj: EntityObject) extends Event
-  case class Delete(obj: EntityObject) extends Event
+  case class Update(obj: entityObject) extends Event
+  case class Delete(obj: entityObject) extends Event
 }

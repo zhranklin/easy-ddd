@@ -1,7 +1,7 @@
 package com.zhranklin.ddd.support.formats
 
 import com.zhranklin.ddd.infra.persistence._
-import com.zhranklin.ddd.model.Id
+import com.zhranklin.ddd.model.{Id, entityObject}
 
 /**
  * Created by Zhranklin on 2017/3/9.
@@ -12,8 +12,8 @@ trait SimpleFormatsViaString extends Repository {
     def marshal(a: String) = a
   }
 
-  implicit def mEo = new Marshaller[com.zhranklin.ddd.model.EntityObject, String] {
-    def marshal(a: com.zhranklin.ddd.model.EntityObject) = a.id.id
+  implicit def mEo = new Marshaller[entityObject, String] {
+    def marshal(a: entityObject) = a.id.id
   }
 
   implicit def mInt = new Marshaller[Int, String] {
@@ -32,7 +32,7 @@ trait SimpleFormatsViaString extends Repository {
     def marshal(a: Option[T]) = a.map(m.marshal).getOrElse("")
   }
 
-  implicit def uEo[E <: com.zhranklin.ddd.model.EntityObject](implicit f: Dmo[String] ⇒ E, mapper: Mapper[String]) = new Unmarshaller[E, String] {
+  implicit def uEo[E <: entityObject](implicit f: Dmo[String] ⇒ E, mapper: Mapper[String]) = new Unmarshaller[E, String] {
     def unmarshal(b: String) = read[E][String](Id(b))
   }
 }

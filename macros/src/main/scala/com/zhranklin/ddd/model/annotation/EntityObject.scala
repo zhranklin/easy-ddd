@@ -52,15 +52,11 @@ class EntityObject extends StaticAnnotation {
             q"(${Lit(name)}, ${Term.Name("_m" + tpeToIdentifier(tpe))}.marshal($ref.${Term.Name(name)}))"
         }
 
-        //TODO 一下三行为宏中暂时删除的代码
-//        implicit def _eom[T](implicit _m_EntityObject_Id: Marshaller[com.zhranklin.ddd.model.Id, T]) = new Marshaller[EntityObject, T] {
-//          def write(a: EntityObject) = _m_EntityObject_Id.write(a.id)
-//        }
         q"""
            case class $typeName(..${paramss.head})
                                (implicit sender: com.zhranklin.ddd.infra.event.Sender,
                                 id: com.zhranklin.ddd.model.Id)
-             extends com.zhranklin.ddd.model.EntityObject {
+             extends com.zhranklin.ddd.model.entityObject {
              import com.zhranklin.ddd.infra.event.Event.{Update, Delete}
 
              sender.send(Update(this))
@@ -80,7 +76,7 @@ class EntityObject extends StaticAnnotation {
            object ${Term.Name(typeName.syntax)} {
              trait Repo {
                import com.zhranklin.ddd.infra.persistence.{Unmarshaller, Marshaller}
-               import com.zhranklin.ddd.model.EntityObject
+               import com.zhranklin.ddd.model.entityObject
                implicit def ${Term.Name(typeToVal(typeName.syntax+"ToDmo"))}[T](obj: $typeName)
                            (implicit ..${impParams(t ⇒ t"Marshaller[$t, T]")}, sender: com.zhranklin.ddd.infra.event.Sender) = {
                  val attr = Map[String, T](..${marshallTuples(q"obj")})
