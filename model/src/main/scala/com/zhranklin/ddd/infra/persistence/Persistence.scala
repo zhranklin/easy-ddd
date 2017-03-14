@@ -13,7 +13,8 @@ trait Marshaller[-A, +B] {
   def marshal(a: A): B
 }
 
-trait Unmarshaller[+A, -B] {
+//todo 由于scala编译器的bug, 只能暂时使用A, 而不是+A
+trait Unmarshaller[A, -B] {
   def unmarshal(b: B): A
 }
 
@@ -28,12 +29,12 @@ case class Dmo[T](id: Id[_], table: String, attributes: Map[String, T])
 trait WithRepos[T]
 
 trait Mapper[T] {
-  def read(id: Id[_]): Dmo[T]
+  def read(id: Id[_], clazz: Class[_]): Dmo[T]
 
   def write(dmo: Dmo[T])
 }
 
 trait Repository[K] {
   val write: entityObject => Unit
-  implicit def read[E <: entityObject](id: String)(implicit mapper: Mapper[K], f: Dmo[K] ⇒ E): E = mapper.read(Id[E](id))
+  implicit def read[E <: entityObject](id: String)(implicit mapper: Mapper[K], f: Dmo[K] ⇒ E, classTag: ClassTag[E]): E = mapper.read(Id[E](id), classTag.runtimeClass)
 }

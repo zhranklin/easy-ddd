@@ -38,7 +38,7 @@ class Repository extends StaticAnnotation {
         q"""
             trait $typeName extends ..${parentNames map {Ctor.Name.apply}} {
               import com.zhranklin.ddd.model.{entityObject, Id}
-              implicit def read[T, E <: entityObject](id: Id[E])(implicit mapper: Mapper[T], f: Dmo[T] ⇒ E): E = mapper.read(id)
+              implicit def read[T, E <: entityObject](id: Id[E])(implicit mapper: Mapper[T], f: Dmo[T] ⇒ E, classTag: scala.reflect.ClassTag[E]): E = mapper.read(id, classTag.runtimeClass)
               implicit private def writeGen[T, E <: entityObject](e: E)(implicit mapper: Mapper[T], f: E ⇒ Dmo[T]): Unit = mapper.write(e)
 
               val write: entityObject ⇒ Unit = {

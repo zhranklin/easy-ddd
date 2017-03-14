@@ -4,9 +4,10 @@ import com.zhranklin.ddd.infra.event.Event.Update
 import com.zhranklin.ddd.infra.event._
 import com.zhranklin.ddd.infra.persistence._
 import com.zhranklin.ddd.model.annotation.EntityObject
-import com.zhranklin.ddd.model.{Id, annotation}
+import com.zhranklin.ddd.model.{Id, annotation, entityObject}
 import com.zhranklin.ddd.support.SimpleDMCreationContext
 import com.zhranklin.ddd.support.formats.SimpleFormatsViaString
+import org.scalatest._
 
 import scala.collection.mutable
 
@@ -43,7 +44,7 @@ trait RepoImplicits extends SimpleFormatsViaString with SimpleDMCreationContext 
     "TestObj" → testobj)
 
   implicit val mpr: Mapper[String] = new Mapper[String] {
-    def read(id: Id[_]): Dmo[String] = Dmo(id, "Simple", mp("Simple")(id.id))
+    def read(id: Id[_], clazz: Class[_]) = Dmo(id, "Simple", mp(clazz.getSimpleName)(id.id))
     def write(dmo: Dmo[String]) = mp(dmo.table) += (dmo.id.id → dmo.attributes)
   }
 
@@ -53,26 +54,30 @@ trait RepoImplicits extends SimpleFormatsViaString with SimpleDMCreationContext 
     case _ ⇒
   }
 
-  val eBus = new EventBus {
-    override protected def handle(event: Event) = {
-      println(s"pre mp: $mp")
-      println(event)
-      handleUpdate(event)
-      super.handle(event)
-      println(s"post mp: $mp")
-      Some(event)
-    }
-  }
-
-  eBus.addSource(eventSender.source)
 }
 
 @annotation.Repository
 trait Repos extends RepoImplicits with WithRepos[(Parent, Simple, ttt.TestObj, ttt.Root)]
 
-object TestDMCreationContext extends App with SimpleDMCreationContext with Repos {
-  Simple("kk", "ww")
-  println(read[Simple]("1"))
-  println(read[ttt.TestObj]("1"))
-  println(read[Parent]("1"))
+class TestDMCreationContext extends FlatSpec with Matchers with SimpleDMCreationContext with Repos {
+
+  val eBus = new EventBus {
+    override protected def handle(event: Event) = {
+      info(s"event: $event")
+      info(s"mp before handle:")
+      mp.map(tp ⇒ s"${tp._1} -> ${tp._2}").foreach(info(_))
+      handleUpdate(event)
+      super.handle(event)
+      info(s"mp after handle:")
+      mp.map(tp ⇒ s"${tp._1} -> ${tp._2}").foreach(info(_))
+      Some(event)
+    }
+  }
+  eBus.addSource(eventSender.source)
+  "The repositories and event buses" should "works well" in {
+    Simple("kk", "ww")
+    info(s"""read[Simple]: ${read[Simple]("1")}""")
+    info(s"""read[ttt.TestObj]("1"): ${read[ttt.TestObj]("1")}""")
+    info(s"""read[Parent]("1"): ${read[Parent]("1")}""")
+  }
 }

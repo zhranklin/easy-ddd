@@ -4,7 +4,7 @@ organization  := "com.zhranklin.easy-ddd"
 
 version       := "0.1"
 
-scalaVersion in ThisBuild := "2.12.1"
+scalaVersion in ThisBuild := "2.11.8"
 
 
 lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
@@ -16,7 +16,7 @@ lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
   // A dependency on macro paradise 3.x is required to both write and expand
   // new-style macros.  This is similar to how it works for old-style macro
   // annotations and a dependency on macro paradise 2.x.
-  addCompilerPlugin("org.scalameta" % "paradise" % "3.0.0-M7" cross CrossVersion.full),
+  addCompilerPlugin("org.scalameta" % "paradise" % "3.0.0-beta4" cross CrossVersion.full),
   scalacOptions += "-Xplugin-require:macroparadise",
   // temporary workaround for https://github.com/scalameta/paradise/issues/10
   scalacOptions in (Compile, console) := Seq(), // macroparadise plugin doesn't work in repl yet.
@@ -26,15 +26,13 @@ lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
 
 lazy val macros = project.settings(
   metaMacroSettings,
-  libraryDependencies += "org.scalameta" %% "scalameta" % "1.6.0" withSources()
+  libraryDependencies += "org.scalameta" %% "scalameta" % "1.4.0" withSources()
 )
 
 lazy val model = project.settings().dependsOn(macros)
 
-lazy val infra = project.settings().dependsOn(model)
-
 lazy val testcase = project
   .settings(metaMacroSettings,
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-    scalacOptions := Seq("-Xlog-implicits")
-  ).dependsOn(infra)
+//    scalacOptions := Seq("-Xlog-implicits"),
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+  ).dependsOn(model)

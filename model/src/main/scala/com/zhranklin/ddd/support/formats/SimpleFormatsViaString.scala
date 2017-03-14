@@ -34,7 +34,7 @@ trait SimpleFormatsViaString extends Repository[String] {
     def marshal(a: Option[T]) = a.map(m.marshal).getOrElse("")
   }
 
-  implicit def uEo[E <: entityObject](implicit f: Dmo[String] ⇒ E, mapper: Mapper[String]) = new Unmarshaller[E, String] {
+  implicit def uEo[E <: entityObject](implicit f: Dmo[String] ⇒ E, mapper: Mapper[String], classTag: ClassTag[E]) = new Unmarshaller[E, String] {
     def unmarshal(b: String) = read[E](b)
   }
 
