@@ -8,7 +8,7 @@ import scala.reflect.ClassTag
 /**
  * Created by Zhranklin on 2017/3/9.
  */
-trait SimpleFormatsViaString extends Repository[String] {
+trait SimpleFormatsViaString extends repository[String] {
   implicit val mar = new Format[String, String] {
     def unmarshal(a: String) = a
     def marshal(a: String) = a

@@ -24,17 +24,17 @@ trait Format[A, B] extends Marshaller[A, B] with Unmarshaller[A, B]
  * Created by Zhranklin on 2017/2/12.
  * 持久化的中间对象, 用于保存实体
  */
-case class Dmo[T](id: Id[_], table: String, attributes: Map[String, T])
+case class Dmo[T](id: Id, table: String, attributes: Map[String, T])
 
 trait WithRepos[T]
 
 trait Mapper[T] {
-  def read(id: Id[_], clazz: Class[_]): Dmo[T]
+  def read(id: Id, clazz: Class[_]): Dmo[T]
 
   def write(dmo: Dmo[T])
 }
 
-trait Repository[K] {
+trait repository[K] {
   val write: entityObject => Unit
-  implicit def read[E <: entityObject](id: String)(implicit mapper: Mapper[K], f: Dmo[K] ⇒ E, classTag: ClassTag[E]): E = mapper.read(Id[E](id), classTag.runtimeClass)
+  implicit def read[E <: entityObject](id: String)(implicit mapper: Mapper[K], f: Dmo[K] ⇒ E, classTag: ClassTag[E]): E = mapper.read(Id(id), classTag.runtimeClass)
 }

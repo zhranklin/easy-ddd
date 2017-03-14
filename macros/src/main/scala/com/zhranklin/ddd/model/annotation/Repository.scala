@@ -18,7 +18,7 @@ class Repository extends StaticAnnotation {
           println(parentsStr.zipWithIndex)
           val withRepos = parentsStr.indexWhere {_.contains("WithRepos")}
           val (realParents: Seq[String], wrp :: entityTypes) = parentsStr.splitAt(withRepos)
-          ("com.zhranklin.ddd.infra.persistence.Repository" +: realParents ++: entityTypes.map(_ + ".Repo"),
+          ("com.zhranklin.ddd.infra.persistence.repository" +: realParents ++: entityTypes.map(_ + ".Repo"),
             entityTypes)
         }
 
@@ -38,7 +38,7 @@ class Repository extends StaticAnnotation {
         q"""
             trait $typeName extends ..${parentNames map {Ctor.Name.apply}} {
               import com.zhranklin.ddd.model.{entityObject, Id}
-              implicit def read[T, E <: entityObject](id: Id[E])(implicit mapper: Mapper[T], f: Dmo[T] ⇒ E, classTag: scala.reflect.ClassTag[E]): E = mapper.read(id, classTag.runtimeClass)
+              implicit def read[T, E <: entityObject](id: Id)(implicit mapper: Mapper[T], f: Dmo[T] ⇒ E, classTag: scala.reflect.ClassTag[E]): E = mapper.read(id, classTag.runtimeClass)
               implicit private def writeGen[T, E <: entityObject](e: E)(implicit mapper: Mapper[T], f: E ⇒ Dmo[T]): Unit = mapper.write(e)
 
               val write: entityObject ⇒ Unit = {

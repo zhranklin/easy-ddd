@@ -6,7 +6,7 @@ import com.zhranklin.ddd.model.{Id, entityObject}
 import scala.reflect.ClassTag
 
 abstract class IdGenerator {
-  def generate[E](implicit classTag: ClassTag[E]): Id[E]
+  def generate[E](implicit classTag: ClassTag[E]): Id
 }
 
 object IdGenerator {
@@ -29,7 +29,7 @@ object IdGenerator {
  */
 trait DMCreationContext {
 
-  implicit def getId[E](implicit idGenerator: IdGenerator, classTag: ClassTag[E]): Id[E] = idGenerator.generate
+  implicit def getId(implicit idGenerator: IdGenerator): Id = idGenerator.generate
 
   implicit val idGenerator: IdGenerator
 

@@ -3,8 +3,8 @@ package com.zhranklin.ddd.testcase
 import com.zhranklin.ddd.infra.event.Event.Update
 import com.zhranklin.ddd.infra.event._
 import com.zhranklin.ddd.infra.persistence._
-import com.zhranklin.ddd.model.annotation.EntityObject
-import com.zhranklin.ddd.model.{Id, annotation, entityObject}
+import com.zhranklin.ddd.model.annotation.{EntityObject, Repository}
+import com.zhranklin.ddd.model.Id
 import com.zhranklin.ddd.support.SimpleDMCreationContext
 import com.zhranklin.ddd.support.formats.SimpleFormatsViaString
 import org.scalatest._
@@ -44,7 +44,7 @@ trait RepoImplicits extends SimpleFormatsViaString with SimpleDMCreationContext 
     "TestObj" → testobj)
 
   implicit val mpr: Mapper[String] = new Mapper[String] {
-    def read(id: Id[_], clazz: Class[_]) = Dmo(id, "Simple", mp(clazz.getSimpleName)(id.id))
+    def read(id: Id, clazz: Class[_]) = Dmo(id, "Simple", mp(clazz.getSimpleName)(id.id))
     def write(dmo: Dmo[String]) = mp(dmo.table) += (dmo.id.id → dmo.attributes)
   }
 
@@ -56,7 +56,7 @@ trait RepoImplicits extends SimpleFormatsViaString with SimpleDMCreationContext 
 
 }
 
-@annotation.Repository
+@Repository
 trait Repos extends RepoImplicits with WithRepos[(Parent, Simple, ttt.TestObj, ttt.Root)]
 
 class TestDMCreationContext extends FlatSpec with Matchers with SimpleDMCreationContext with Repos {

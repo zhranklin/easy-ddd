@@ -29,10 +29,10 @@ lazy val macros = project.settings(
   libraryDependencies += "org.scalameta" %% "scalameta" % "1.4.0" withSources()
 )
 
-lazy val model = project.settings().dependsOn(macros)
+lazy val core = project.settings().dependsOn(macros)
 
 lazy val testcase = project
   .settings(metaMacroSettings,
 //    scalacOptions := Seq("-Xlog-implicits"),
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-  ).dependsOn(model)
+  ).dependsOn(core)
