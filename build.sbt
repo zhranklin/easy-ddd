@@ -42,20 +42,26 @@ lazy val rootProject = (project in file("."))
     commonSettings,
     publishArtifact := false,
     name := "easy-ddd")
-  .aggregate(macros, core, testcase)
+  .aggregate(macros, core, casbah, testcase)
 
 lazy val macros = project.settings(
   commonSettings,
   metaMacroSettings,
   name := "easy-ddd-macros",
-  libraryDependencies += "org.scalameta" %% "scalameta" % "1.6.0" withSources()
+  libraryDependencies += "org.scalameta" %% "scalameta" % "1.6.0"
 )
 
 lazy val core = project.settings(
   commonSettings,
-  name := "easy-ddd-core",
-  libraryDependencies ++= "org.mybatis" % "mybatis" % "3.4.2" % "provided" :: Nil
+  name := "easy-ddd-core"
 ).dependsOn(macros)
+
+lazy val casbah = project.settings(
+  commonSettings,
+  name := "easy-ddd-casbah",
+  libraryDependencies += "org.mongodb" %% "casbah" % "3.1.1" % "provided",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+).dependsOn(core)
 
 lazy val testcase = project
   .settings(
@@ -63,5 +69,6 @@ lazy val testcase = project
     metaMacroSettings,
     publishArtifact := false,
 //    scalacOptions := Seq("-Xlog-implicits"),
+    libraryDependencies += "org.mongodb" %% "casbah" % "3.1.1" % "test",
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-  ).dependsOn(core)
+  ).dependsOn(core, casbah)

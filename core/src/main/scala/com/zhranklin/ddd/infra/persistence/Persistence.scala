@@ -29,6 +29,9 @@ case class Dmo[T](id: Id, table: String, attributes: Map[String, T])
 trait WithRepos[T]
 
 trait Mapper[T] {
+
+  def getTableName(clazz: Class[_]) = clazz.getSimpleName
+
   def read(id: Id, clazz: Class[_]): Dmo[T]
 
   def write(dmo: Dmo[T])

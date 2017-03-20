@@ -44,7 +44,7 @@ trait RepoImplicits extends SimpleFormatsViaString with SimpleDMCreationContext 
     "TestObj" → testobj)
 
   implicit val mpr: Mapper[String] = new Mapper[String] {
-    def read(id: Id, clazz: Class[_]) = Dmo(id, "Simple", mp(clazz.getSimpleName)(id.id))
+    def read(id: Id, clazz: Class[_]) = Dmo(id, "Simple", mp(getTableName(clazz))(id.id))
     def write(dmo: Dmo[String]) = mp(dmo.table) += (dmo.id.id → dmo.attributes)
   }
 
