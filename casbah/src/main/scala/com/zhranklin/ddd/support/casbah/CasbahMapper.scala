@@ -24,7 +24,7 @@ trait CasbahMapper extends Mapper[DBAttr] {
     ).orNull
   }
   def write(dmo: Dmo[DBAttr]) = {
-    val mongoObj = dmo.attributes.toSeq :+ ("_id", dmo.id.id)
+    val mongoObj = dmo.attributes.mapValues(_.v).toSeq :+ ("_id", dmo.id.id)
     db(dmo.table).update("_id" $eq dmo.id.id, $(mongoObj: _*), upsert = true)
   }
 }

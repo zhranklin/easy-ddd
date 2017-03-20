@@ -22,6 +22,16 @@ case class Parent(to1: ttt.TestObj, to2: ttt.TestObj)
 @EntityObject
 case class Simple(a: String, b: String)
 
+package ttt {
+
+  @EntityObject
+  case class TestObj(a: String, b: Int, c: List[String], d: List[Map[Int, List[Option[String]]]])
+
+  @EntityObject
+  case class Root(par: Parent)
+
+}
+
 trait RepoImplicits extends DBObjectFormats with SimpleDMCreationContext {
 
   implicit val mpr = new CasbahMapper {
@@ -33,15 +43,6 @@ trait RepoImplicits extends DBObjectFormats with SimpleDMCreationContext {
       write(e)
     case _ ⇒
   }
-
-}
-package ttt {
-
-  @EntityObject
-  case class TestObj(a: String, b: Int, c: List[String], d: List[Map[Int, List[Option[String]]]])
-
-  @EntityObject
-  case class Root(par: Parent)
 
 }
 
@@ -69,7 +70,7 @@ class CasbahMapperTest extends FlatSpec with SimpleDMCreationContext with Repos 
   }
   eBus.addSource(eventSender.source)
   Simple("kk", "ww")
-  info(s"""read[Simple]: ${read[Simple]("1")(mpr, implicitly[Dmo[DBAttr] ⇒ Simple], implicitly[ClassTag[Simple]])}""")
+  info(s"""read[Simple]: ${read[Simple]("d33cfca0-ae90-4618-b281-d6a7298e5e24")}""")
   info(s"""read[ttt.TestObj]("1"): ${read[ttt.TestObj]("1")}""")
   info(s"""read[Parent]("1"): ${read[Parent]("1")}""")
 }
