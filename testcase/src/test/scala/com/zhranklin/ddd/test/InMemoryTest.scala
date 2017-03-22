@@ -1,36 +1,19 @@
-package com.zhranklin.ddd.testcase
+package com.zhranklin.ddd.test
 
-import com.zhranklin.ddd.infra.event.Event.Update
-import com.zhranklin.ddd.infra.event._
-import com.zhranklin.ddd.infra.persistence._
-import com.zhranklin.ddd.model.annotation.{EntityObject, Repository}
-import com.zhranklin.ddd.model.Id
+import com.zhranklin.ddd.infra.event.{Event, EventBus}
 import com.zhranklin.ddd.support.SimpleDMCreationContext
+import org.scalatest.{FlatSpec, Matchers}
+import MockEntityObjects._
+import com.zhranklin.ddd.infra.event.Event.Update
+import com.zhranklin.ddd.infra.persistence._
+import com.zhranklin.ddd.model.Id
+import com.zhranklin.ddd.model.annotation.Repository
 import com.zhranklin.ddd.support.formats.SimpleFormatsViaString
-import org.scalatest._
 
 import scala.collection.mutable
 
-/**
- * Created by Zhranklin on 2017/2/14.
- * 用于测试宏注解的类
- */
-@EntityObject
-case class Parent(to1: ttt.TestObj, to2: ttt.TestObj)
-
-
-@EntityObject
-case class Simple(a: String, b: String)
-
-package ttt {
-
-  @EntityObject
-  case class TestObj(a: String, b: Int, c: List[String], d: List[Map[Int, List[Option[String]]]])
-
-  @EntityObject
-  case class Root(par: Parent)
-
-}
+@Repository
+trait Repo extends RepoImplicits with WithRepoOf[(Parent, Simple, TestObj, Root)]
 
 trait RepoImplicits extends SimpleFormatsViaString with SimpleDMCreationContext {
 
@@ -56,10 +39,10 @@ trait RepoImplicits extends SimpleFormatsViaString with SimpleDMCreationContext 
 
 }
 
-@Repository
-trait Repos extends RepoImplicits with WithRepos[(Parent, Simple, ttt.TestObj, ttt.Root)]
-
-class TestDMCreationContext extends FlatSpec with Matchers with SimpleDMCreationContext with Repos {
+/**
+ * Created by Zhranklin on 2017/3/21.
+ */
+class InMemoryTest extends FlatSpec with Matchers with SimpleDMCreationContext with Repo {
 
   val eBus = new EventBus {
     override protected def handle(event: Event) = {
@@ -77,7 +60,7 @@ class TestDMCreationContext extends FlatSpec with Matchers with SimpleDMCreation
   "The repositories and event buses" should "works well" in {
     Simple("kk", "ww")
     info(s"""read[Simple]: ${read[Simple]("1")}""")
-    info(s"""read[ttt.TestObj]("1"): ${read[ttt.TestObj]("1")}""")
+    info(s"""read[ttt.TestObj]("1"): ${read[TestObj]("1")}""")
     info(s"""read[Parent]("1"): ${read[Parent]("1")}""")
   }
 }

@@ -16,7 +16,7 @@ class Repository extends StaticAnnotation {
         val (parentNames1, entityTypes1) = {
           val parentsStr = parents.map(_.syntax.replaceAll("\\(\\)", ""))
           println(parentsStr.zipWithIndex)
-          val withRepos = parentsStr.indexWhere {_.contains("WithRepos")}
+          val withRepos = parentsStr.indexWhere {_.contains("WithRepoOf")}
           val (realParents: Seq[String], wrp :: entityTypes) = parentsStr.splitAt(withRepos)
           ("com.zhranklin.ddd.infra.persistence.repository" +: realParents ++: entityTypes.map(_ + ".Repo"),
             entityTypes)
@@ -24,7 +24,7 @@ class Repository extends StaticAnnotation {
 
         val (parentNames, entityTypes) = {
           val parentNameTps: Seq[(String, Boolean)] = parents flatMap {
-            case t @ ctor"WithRepos[(..$types)]()" ⇒
+            case t @ ctor"WithRepoOf[(..$types)]()" ⇒
               println(types)
               println(s"t: $t")
               types map (tpe ⇒ (tpe.syntax + ".Repo", true))

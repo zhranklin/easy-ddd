@@ -6,36 +6,18 @@ import com.zhranklin.ddd.infra.event._
 import com.zhranklin.ddd.infra.persistence._
 import com.zhranklin.ddd.model.annotation.{EntityObject, Repository}
 import com.zhranklin.ddd.support.SimpleDMCreationContext
-import com.zhranklin.ddd.support.formats.SimpleFormatsViaString
-import org.scalatest.{FlatSpec, _}
+import org.scalatest.FlatSpec
 
-import scala.reflect.ClassTag
+import com.zhranklin.ddd.test.MockEntityObjects._
 
-/**
- * Created by Zhranklin on 2017/2/14.
- * 用于测试宏注解的类
- */
-@EntityObject
-case class Parent(to1: ttt.TestObj, to2: ttt.TestObj)
-
-
-@EntityObject
-case class Simple(a: String, b: String)
-
-package ttt {
-
-  @EntityObject
-  case class TestObj(a: String, b: Int, c: List[String], d: List[Map[Int, List[Option[String]]]])
-
-  @EntityObject
-  case class Root(par: Parent)
-
+object client {
+  val db = MongoClient()("easy-ddd_test")
 }
 
 trait RepoImplicits extends DBObjectFormats with SimpleDMCreationContext {
 
   implicit val mpr = new CasbahMapper {
-    def db = MongoClient()("test")
+    def db = client.db
   }
 
   def handleUpdate(event: Event): Unit = event match {
@@ -47,31 +29,39 @@ trait RepoImplicits extends DBObjectFormats with SimpleDMCreationContext {
 }
 
 @Repository
-trait Repos extends RepoImplicits with WithRepos[(Parent, Simple, ttt.TestObj, ttt.Root)]
+trait Repos extends RepoImplicits with WithRepoOf[(Parent, Simple, TestObj, Root)]
 
 /**
  * Created by Zhranklin on 2017/3/20.
  */
 class CasbahMapperTest extends FlatSpec with SimpleDMCreationContext with Repos {
 
-  val db = MongoClient()("test")
+  import client._
+  db.dropDatabase()
+
+  val simples = db("Simple")
 
   val eBus = new EventBus {
     override protected def handle(event: Event) = {
       info(s"event: $event")
       info(s"mp before handle:")
-      List(db("Simple"), db("Parent"), db("testObj")).foreach(_.find.map(_.toString).foreach(info(_)))
+      List(db("Simple"), db("Parent"), db("testObj")).foreach(col ⇒ info(col.find.toList.toString))
       handleUpdate(event)
       super.handle(event)
       info(s"mp after handle:")
-      List(db("Simple"), db("Parent"), db("testObj")).foreach(_.find.map(_.toString).foreach(info(_)))
+      List(db("Simple"), db("Parent"), db("testObj")).foreach(col ⇒ info(col.find.toList.toString))
       Some(event)
     }
   }
   eBus.addSource(eventSender.source)
-  Simple("kk", "ww")
-  info(s"""read[Simple]: ${read[Simple]("d33cfca0-ae90-4618-b281-d6a7298e5e24")}""")
-  info(s"""read[ttt.TestObj]("1"): ${read[ttt.TestObj]("1")}""")
-  info(s"""read[Parent]("1"): ${read[Parent]("1")}""")
+  val simple1 = Simple("kk", "ww")
+  val testObj1 = TestObj("testobj1", 1, List("a", "b"), List(Map(1 → List(Some("1")), 2 → List(Some("2")))))
+  val testObj2 = TestObj("testobj2", 2, List("c", "d"), List(Map(1 → List(None), 2 → List(Some("2")))))
+  val parent1 = Parent(testObj1, testObj1)
+  val root1 = Root(parent1)
+  info(s"""read[Simple]: ${read[Simple](simple1.id.id)}""")
+  info(s"""read[ttt.TestObj]: ${read[TestObj](testObj1.id.id)}""")
+  info(s"""read[Parent]: ${read[Parent](parent1.id.id)}""")
+  info(s"""read[ttt.Root]: ${read[Root](root1.id.id)}""")
 }
 

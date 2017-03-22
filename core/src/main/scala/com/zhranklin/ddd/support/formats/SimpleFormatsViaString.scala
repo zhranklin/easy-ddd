@@ -9,7 +9,7 @@ import scala.reflect.ClassTag
  * Created by Zhranklin on 2017/3/9.
  */
 trait SimpleFormatsViaString extends repository[String] {
-  implicit val mar = new Format[String, String] {
+  implicit val fStr = new Format[String, String] {
     def unmarshal(a: String) = a
     def marshal(a: String) = a
   }
@@ -18,8 +18,8 @@ trait SimpleFormatsViaString extends repository[String] {
     def marshal(a: entityObject) = a.id.id
   }
 
-  implicit def mInt = new Marshaller[Int, String] {
-    def marshal(a: Int) = a.toString
+  implicit def mVal = new Marshaller[AnyVal, String] {
+    def marshal(a: AnyVal) = a.toString
   }
 
   implicit def mIter[T](implicit m: Marshaller[T, String]) = new Marshaller[Iterable[T], String] {
@@ -38,8 +38,32 @@ trait SimpleFormatsViaString extends repository[String] {
     def unmarshal(b: String) = read[E](b)
   }
 
+  implicit def uByte = new Unmarshaller[Byte, String] {
+    def unmarshal(b: String) = java.lang.Byte.parseByte(b)
+  }
+
+  implicit def uShort = new Unmarshaller[Short, String] {
+    def unmarshal(b: String) = java.lang.Short.parseShort(b)
+  }
+
+  implicit def uChar = new Unmarshaller[Char, String] {
+    def unmarshal(b: String) = b.head
+  }
+
   implicit def uInt = new Unmarshaller[Int, String] {
     def unmarshal(b: String) = Integer.parseInt(b)
+  }
+
+  implicit def uLong = new Unmarshaller[Long, String] {
+    def unmarshal(b: String) = java.lang.Long.parseLong(b)
+  }
+
+  implicit def uFloat = new Unmarshaller[Float, String] {
+    def unmarshal(b: String) = java.lang.Float.parseFloat(b)
+  }
+
+  implicit def uDouble = new Unmarshaller[Double, String] {
+    def unmarshal(b: String) = java.lang.Double.parseDouble(b)
   }
 
   implicit def uList[T](implicit u: Unmarshaller[T, String]) = new Unmarshaller[List[T], String] {
@@ -73,5 +97,7 @@ trait SimpleFormatsViaString extends repository[String] {
   implicit def uOpt[T](implicit u: Unmarshaller[T, String]) = new Unmarshaller[Option[T], String] {
     def unmarshal(b: String) = if (b == "") None else Some(u.unmarshal(b))
   }
+
+  FormatsTester.test[String]
 
 }
